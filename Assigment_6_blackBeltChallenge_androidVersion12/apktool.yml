@@ -1,0 +1,24 @@
+version: 2.11.0
+apkFileName: Assigment_6_blackBeltChallenge_androidVersion12.apk
+isFrameworkApk: false
+usesFramework:
+  ids:
+  - 1
+  tag: null
+sdkInfo:
+  minSdkVersion: 8
+  targetSdkVersion: 8
+packageInfo:
+  forcedPackageId: 127
+  renameManifestPackage: null
+versionInfo:
+  versionCode: 1581
+  versionName: 1.58-1
+sharedLibrary: false
+sparseResources: false
+compactEntries: false
+doNotCompress:
+- arsc
+- jpg
+- ogg
+- png

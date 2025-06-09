@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# Check for package name input
+if [ -z "$1" ]; then
+  echo "❌ Usage: $0 <package_name>"
+  exit 1
+fi
+
+PACKAGE_NAME=$1
+
+# Launch the app
+echo "🚀 Launching app: $PACKAGE_NAME"
+adb shell monkey -p "$PACKAGE_NAME" -c android.intent.category.LAUNCHER 1
+sleep 5
+adb shell input tap 610 315
+
+# Lock to landscape and get the width
+adb shell settings put system accelerometer_rotation 0
+adb shell settings put system user_rotation 1
+sleep 1
+
+# Get screen size
+SCREEN_SIZE=$(adb shell wm size | grep -oP '\d+x\d+')
+SCREEN_WIDTH=$(echo $SCREEN_SIZE | cut -d'x' -f1)
+SCREEN_HEIGHT=$(echo $SCREEN_SIZE | cut -d'x' -f2)
+Y=$((SCREEN_HEIGHT / 2))
+LEFT_X=0
+RIGHT_X=$((SCREEN_WIDTH + 300))
+Center=$((SCREEN_WIDTH / 2))
+
+DURATION=3000
+
+# Triggers
+START_TRIGGER="START_DRAG"
+STOP_TRIGGER="STOP_DRAG"
+firstTime=false
+
+# Drag function
+perform_drag() {
+  local X1=$1
+  local X2=$2
+  echo "📍 Dragging from $X1 to $X2 at Y=$Y..."
+  adb shell input draganddrop $X1 $Y $X2 $Y $DURATION
+}
+
+echo "🕵️ Waiting for '$START_TRIGGER' in logcat..."
+
+# Start watching logcat
+adb logcat | while read -r line; do
+  echo "✅ '$START_TRIGGER' detected. Starting drag loop..."
+  if [ "$firstTime" = false ]; then
+      firstTime=true
+      perform_drag $Center  $RIGHT_X
+      perform_drag $RIGHT_X $LEFT_X
+      sleep 2
+    fi
+
+    while true; do
+      perform_drag $LEFT_X $RIGHT_X
+      perform_drag $RIGHT_X $LEFT_X
+      # sleep 2
+
+      # if adb logcat -d | grep -q "$STOP_TRIGGER"; then
+      #   echo "🛑 '$STOP_TRIGGER' detected. Stopping."
+      #   break
+      # fi
+    done
+
+done
